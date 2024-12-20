@@ -16,6 +16,12 @@ class Staff(models.Model):
         ('Teacher', 'Teacher'),
     )
 
+    branch_options = (
+        ('KL', 'Kuala Lumpur'),
+        ('SGR', 'Selangor'),
+    )
+
+    # Staff Table
     school_name = models.CharField(max_length=100)
     branch_name = models.CharField(max_length=100)
     firstName = models.CharField(max_length=100)
@@ -46,13 +52,7 @@ class Staff(models.Model):
         ]
      )
 
-class School(models.Model):
-
-    branch_options = (
-        ('KL', 'Kuala Lumpur'),
-        ('SGR', 'Selangor'),
-    )
-
+    # School Table
     academyYear = models.IntegerField()
     academyMonth = models.IntegerField()
     startDate = models.DateField() #dd/mm/yyyy
@@ -60,16 +60,6 @@ class School(models.Model):
     isPrimary = models.BooleanField(default=False) # TRUE/FALSE
     Branches = models.CharField(max_length=100, choices=branch_options) # make a list of branches
     IsFranchiseStaff = models.BooleanField(default=False)
-
-class ChildrenSchool(models.Model):
-
-    schoolName = models.CharField(max_length=100)
-    branchName = models.CharField(max_length=100)
-    programsName = models.CharField(max_length=100)
-    classroomName = models.CharField(max_length=100)
-    academyYear = models.IntegerField() # YYYY
-    academyMonth = models.IntegerField() # MM
-    enrollmentDate = models.DateField()
 
 class Children(models.Model):
 
@@ -106,20 +96,39 @@ class Children(models.Model):
         ('Non-citizenship', 'Non-citizenship'),
     )
 
+    relation_options = (
+        ('FATHER', 'FATHER'),
+        ('MOTHER', 'MOTHER'),
+        ('UNCLE', 'UNCLE'),
+        ('AUNTY', 'AUNTY'),
+        ('GRANDMOTHER', 'GRANDMOTHER'),
+        ('GRANDFATHER', 'GRANDFATHER'),
+    )
+
+    # Children School Table
+    schoolName = models.CharField(max_length=100)
+    branchName = models.CharField(max_length=100)
+    programsName = models.CharField(max_length=100)
+    classroomName = models.CharField(max_length=100)
+    academyYear = models.IntegerField() # YYYY
+    academyMonth = models.IntegerField() # MM
+    enrollmentDate = models.DateField()
+
+    # Children Table
     firstName = models.CharField(max_length=100)
     lastName = models.CharField(max_length=100)
     birthDate = models.DateField()
     birthFutureDate = models.DateField(blank=True, null=True)
     childNRIC = models.CharField(
-        max_length=14,
-        validators=[
-            RegexValidator(
-                regex=r'^\d{6}-\d{2}-\d{4}$',
-                message='Please use XXXXXX-XX-XXXX format.',
-                code='invalid_nric_format'
-            )
-        ]
-    )
+            max_length=14,
+            validators=[
+                RegexValidator(
+                    regex=r'^\d{6}-\d{2}-\d{4}$',
+                    message='Please use XXXXXX-XX-XXXX format.',
+                    code='invalid_nric_format'
+                )
+            ]
+        )
     birthCountry = models.CharField(max_length=100)
     profileImage = models.CharField(max_length=100, blank=True, null=True)
     gender = models.CharField(max_length=100, choices=gender_options) #	Male/Female
@@ -136,17 +145,7 @@ class Children(models.Model):
     otherLanguage = models.CharField(max_length=100, blank=True, null=True)	# Mandatory ONLY IF language = OTHERS
     otherReligion = models.CharField(max_length=100, blank=True, null=True)	# Mandatory ONLY IF religion = OTHERS
 
-class Parents(models.Model):
-
-    relation_options = (
-        ('FATHER', 'FATHER'),
-        ('MOTHER', 'MOTHER'),
-        ('UNCLE', 'UNCLE'),
-        ('AUNTY', 'AUNTY'),
-        ('GRANDMOTHER', 'GRANDMOTHER'),
-        ('GRANDFATHER', 'GRANDFATHER'),
-    )
-
+    # Parents Table
     isSingle = models.BooleanField(default=False)
     isGuardian = models.BooleanField(default=False)
     parentFirstName = models.CharField(max_length=100)
@@ -194,8 +193,7 @@ class Parents(models.Model):
     parentState2 = models.CharField(max_length=100)
     isStaff2 = models.BooleanField(default=False)
 
-class Finance(models.Model):
-
+    # Finance Table
     depositAmount = models.FloatField() #	parent deposit amount to school
     depositeDate = models.DateField()
     creditAmount = models.FloatField() # If school own any amount to parents as of new academy year

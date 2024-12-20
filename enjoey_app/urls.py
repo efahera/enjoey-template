@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UploadCSVView
+from .viewsStaff import UploadCSVView
 from .viewsChildren import UploadCSVViewChildren
 
 urlpatterns = [

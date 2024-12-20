@@ -1,6 +1,6 @@
 import os
 import csv
-from .models import ChildrenSchool, Children, Parents, Finance
+from .models import Children
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.db import connection
@@ -37,7 +37,9 @@ class UploadCSVViewChildren(APIView):
         for row in reader:
 
             try:
-            # Read Children School CSV file by row 
+
+            # Read Children CSV file
+                # Children School
                 schoolName = row['schoolName']
                 branchName = row['branchName']
                 programsName = row['programsName']
@@ -47,20 +49,7 @@ class UploadCSVViewChildren(APIView):
                 enrollmentDate = row['enrollmentDate']
                 enrollmentDate = datetime.strptime(enrollmentDate, '%d/%m/%Y').strftime('%Y-%m-%d')
 
-            # Insert Children School records to database
-                childrenschool, created = ChildrenSchool.objects.get_or_create(
-                    schoolName=schoolName,
-                    defaults={
-                        'branchName': branchName,
-                        'programsName': programsName,
-                        'classroomName': classroomName,
-                        'academyYear': academyYear,
-                        'academyMonth': academyMonth,
-                        'enrollmentDate': enrollmentDate,
-                    }
-                )
-
-            # Read Children CSV file by row
+                # Children 
                 firstName = row['firstName']
                 lastName = row['lastName']
                 birthDate = row['birthDate'] # date
@@ -96,34 +85,7 @@ class UploadCSVViewChildren(APIView):
                 otherLanguage = row['otherLanguage']
                 otherReligion = row['otherReligion']
 
-            # Insert Children records to database
-                children, created = Children.objects.get_or_create(
-                    childNRIC=childNRIC,
-                    defaults={
-                        'firstName': firstName,
-                        'lastName': lastName,
-                        'birthDate': birthDate,
-                        'birthFutureDate': birthFutureDate,
-                        'childNRIC': childNRIC,
-                        'birthCountry': birthCountry,
-                        'profileImage': profileImage,
-                        'gender': gender,
-                        'age': age,
-                        'ethnicity': ethnicity,
-                        'religion': religion,
-                        'isFutureChild': isFutureChild,
-                        'haveSibling': haveSibling,
-                        'isStaffChild': isStaffChild,
-                        'foreignName': foreignName,
-                        'language': language,
-                        'residential': residential,
-                        'otherEthnicity': otherEthnicity,
-                        'otherLanguage': otherLanguage,
-                        'otherReligion': otherReligion,
-                    }
-                )
-
-            # Read Parents CSV file by row 
+                # Parents 
                 isSingle = row['isSingle'].upper() # boolean
                 if isSingle == 'TRUE': isSingle = True
                 elif isSingle == 'FALSE': isSingle = False
@@ -165,10 +127,48 @@ class UploadCSVViewChildren(APIView):
                 elif isStaff2 == 'FALSE': isStaff2 = False
                 else: raise ValueError(f"Invalid value for isStaff2: {row['isStaff2']}")
 
-            # Insert Parents records to database
-                parents, created = Parents.objects.get_or_create(
-                    parentNRIC=parentNRIC,
+                # Finance
+                depositAmount = row['depositAmount']
+                depositeDate = row['depositeDate'] # date
+                depositeDate = datetime.strptime(depositeDate, '%d/%m/%Y').strftime('%Y-%m-%d')
+                creditAmount = row['creditAmount']
+                outstandingAmount = row['outstandingAmount']
+
+            # Insert Children records into database
+                children, created = Children.objects.get_or_create(
+                    childNRIC=childNRIC,
                     defaults={
+                        # Children School
+                        'schoolName': schoolName,
+                        'branchName': branchName,
+                        'programsName': programsName,
+                        'classroomName': classroomName,
+                        'academyYear': academyYear,
+                        'academyMonth': academyMonth,
+                        'enrollmentDate': enrollmentDate,
+
+                        # Children
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'birthDate': birthDate,
+                        'birthFutureDate': birthFutureDate,
+                        'birthCountry': birthCountry,
+                        'profileImage': profileImage,
+                        'gender': gender,
+                        'age': age,
+                        'ethnicity': ethnicity,
+                        'religion': religion,
+                        'isFutureChild': isFutureChild,
+                        'haveSibling': haveSibling,
+                        'isStaffChild': isStaffChild,
+                        'foreignName': foreignName,
+                        'language': language,
+                        'residential': residential,
+                        'otherEthnicity': otherEthnicity,
+                        'otherLanguage': otherLanguage,
+                        'otherReligion': otherReligion,
+
+                        # Parents
                         'isSingle': isSingle,
                         'isGuardian': isGuardian,
                         'parentFirstName': parentFirstName,
@@ -176,6 +176,7 @@ class UploadCSVViewChildren(APIView):
                         'parentEmail': parentEmail,
                         'parentPhone': parentPhone,
                         'parentOccupation': parentOccupation,
+                        'parentNRIC': parentNRIC,
                         'parentBirthCountry': parentBirthCountry,
                         'relation': relation,
                         'parentAddress': parentAddress,
@@ -196,23 +197,14 @@ class UploadCSVViewChildren(APIView):
                         'parentPostcode2': parentPostcode2,
                         'parentState2': parentState2,
                         'isStaff2': isStaff2,
-                    }
-                )
 
-            # Read Finance CSV file by row
-                depositAmount = row['depositAmount']
-                depositeDate = row['depositeDate'] # date
-                depositeDate = datetime.strptime(depositeDate, '%d/%m/%Y').strftime('%Y-%m-%d')
-                creditAmount = row['creditAmount']
-                outstandingAmount = row['outstandingAmount']
-
-            # Insert Finance records to database
-                finance, created = Finance.objects.get_or_create(
-                    depositAmount=depositAmount, # need to change later to a more logical PK
-                    defaults={
+                        # Finance
+                        'depositAmount': depositAmount,
                         'depositeDate': depositeDate,
                         'creditAmount': creditAmount,
                         'outstandingAmount': outstandingAmount,
+
+
                     }
                 )
 

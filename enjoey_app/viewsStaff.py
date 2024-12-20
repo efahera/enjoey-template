@@ -1,6 +1,6 @@
 import os
 import csv
-from .models import Staff, School
+from .models import Staff
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.db import connection
@@ -37,7 +37,9 @@ class UploadCSVView(APIView):
         for row in reader:
 
             try:
-            # Read Staff CSV file by row
+
+            # Read Staff CSV file 
+                # Staff
                 school_name = row['school_name']
                 branch_name = row['branch_name']
                 firstName = row['firstName']
@@ -54,26 +56,43 @@ class UploadCSVView(APIView):
                 birthCountry = row['birthCountry']
                 postcode = row['postcode']
                 role = row['role']
-                isWebAccess = row['isWebAccess'].upper() # changed any values to uppercase
+                isWebAccess = row['isWebAccess'].upper().strip() # changed any values to uppercase
                 if isWebAccess == 'TRUE': isWebAccess = True
                 elif isWebAccess == 'FALSE': isWebAccess = False
                 else: raise ValueError(f"Invalid value for isWebAccess: {row['isWebAccess']}")
-                isMobileAccess = row['isMobileAccess'].upper()
+                isMobileAccess = row['isMobileAccess'].upper().strip()
                 if isMobileAccess == 'TRUE': isMobileAccess = True
                 elif isMobileAccess == 'FALSE': isMobileAccess = False
                 else: raise ValueError(f"Invalid value for isMobileAccess: {row['isMobileAccess']}")
                 doj = row['doj']
                 doj = datetime.strptime(doj, '%d/%m/%Y').strftime('%Y-%m-%d')
-                isExternal = row['isExternal'].upper()
+                isExternal = row['isExternal'].upper().strip()
                 if isExternal == 'TRUE': isExternal = True
                 elif isExternal == 'FALSE': isExternal = False
                 else: raise ValueError(f"Invalid value for isExternal: {row['isExternal']}")
                 staffNRIC = row['staffNRIC']
 
-            # Insert Staff records to database
+                # School
+                academyYear = row['academyYear']
+                academyMonth = row['academyMonth']
+                start_date = row['startDate']
+                start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%d')
+                classroom_name = row['classroom_name']
+                isPrimary = row['isPrimary'].upper().strip()
+                if isPrimary == 'TRUE': isPrimary = True
+                elif isPrimary == 'FALSE': isPrimary = False
+                else: raise ValueError(f"Invalid value for isPrimary: {row['isPrimary']}")
+                Branches = row['Branches']
+                IsFranchiseStaff = row['IsFranchiseStaff'].upper().strip()
+                if IsFranchiseStaff == 'TRUE': IsFranchiseStaff = True
+                elif IsFranchiseStaff == 'FALSE': IsFranchiseStaff = False
+                else: raise ValueError(f"Invalid value for IsFranchiseStaff: {row['IsFranchiseStaff']}")
+
+            # Insert Staff records into database
                 staff, created = Staff.objects.get_or_create(
                     email=email,
                     defaults={
+                        # Staff
                         'school_name': school_name,
                         'branch_name': branch_name,
                         'firstName': firstName,
@@ -93,23 +112,9 @@ class UploadCSVView(APIView):
                         'doj': doj,
                         'isExternal': isExternal,
                         'staffNRIC': staffNRIC,
-                    }
-                )             
 
-            # Read School CSV file by row
-                academyYear = row['academyYear']
-                academyMonth = row['academyMonth']
-                start_date = row['startDate']
-                start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%d')
-                classroom_name = row['classroom_name']
-                isPrimary = row['isPrimary'].strip().upper() == 'TRUE'
-                Branches = row['Branches']
-                IsFranchiseStaff = row['IsFranchiseStaff'].strip().upper() == 'TRUE'
-        
-            # Insert School records to database
-                school, created = School.objects.update_or_create(
-                    academyYear=row['academyYear'], 
-                    defaults={
+                        # School
+                        'academyYear': academyYear,
                         'academyMonth': academyMonth,
                         'startDate': start_date,
                         'classroom_name': classroom_name,
@@ -117,7 +122,7 @@ class UploadCSVView(APIView):
                         'Branches': Branches,
                         'IsFranchiseStaff': IsFranchiseStaff,
                     }
-                ) 
+                )             
 
             except ValueError as e:
                 print(f"Error parsing date or other field: {e}")
