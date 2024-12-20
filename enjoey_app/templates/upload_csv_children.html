@@ -11,11 +11,11 @@
     <!-- Header -->
     <h1 style="text-align: center;">UPLOAD CSV FILE</h1><br>
 
-    <form action="{% url 'upload_csv' %}" method="post" enctype="multipart/form-data" style="text-align: center;">
+    <form action="{% url 'upload_csv_children' %}" method="post" enctype="multipart/form-data" style="text-align: center;">
         {% csrf_token %}
 
-        <!-- File upload form -->
-        <h4 style="text-align: center;">Upload CSV here:</h4>
+        <!-- Children file upload form -->
+        <h4 style="text-align: center;">Upload Children CSV here:</h4>
         <input type="file" name="csv_file" accept=".csv">
 
         <br><br>

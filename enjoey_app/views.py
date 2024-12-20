@@ -12,7 +12,7 @@ from datetime import datetime
 class UploadCSVView(APIView):
 
     def get(self, request, *args, **kwargs):
-        return render(request, 'upload_csv.html')  
+        return render(request, 'upload_csv_staff.html')  
 
     def post(self, request, *args, **kwargs):
         csv_file = request.FILES.get('csv_file')
@@ -37,24 +37,7 @@ class UploadCSVView(APIView):
         for row in reader:
 
             try:
-                dob = row['dob']
-                dob_obj = datetime.strptime(dob, '%d/%m/%Y')
-                formatted_dob = dob_obj.strftime('%Y-%m-%d')
-
-                doj = row['doj']
-                doj_obj = datetime.strptime(doj, '%d/%m/%Y')
-                formatted_doj = doj_obj.strftime('%Y-%m-%d')
-
-                start_date = row['startDate']
-                start_date_obj = datetime.strptime(start_date, '%d/%m/%Y')
-                formatted_start_date = start_date_obj.strftime('%Y-%m-%d')
-
-                isWebAccess = row['isWebAccess'].strip().upper() == 'TRUE'
-                isMobileAccess = row['isMobileAccess'].strip().upper() == 'TRUE'
-                isExternal = row['isExternal'].strip().upper() == 'TRUE'
-                isPrimary = row['isPrimary'].strip().upper() == 'TRUE'
-                IsFranchiseStaff = row['IsFranchiseStaff'].strip().upper() == 'TRUE'
-
+            # Read Staff CSV file by row
                 school_name = row['school_name']
                 branch_name = row['branch_name']
                 firstName = row['firstName']
@@ -62,7 +45,8 @@ class UploadCSVView(APIView):
                 email = row['email']
                 phone = row['phone']
                 gender = row['gender']
-                # dob = formatted_dob
+                dob = row['dob']
+                dob = datetime.strptime(dob, '%d/%m/%Y').strftime('%Y-%m-%d')
                 profileImage = row['profileImage']
                 address = row['address']
                 state = row['state']
@@ -70,12 +54,23 @@ class UploadCSVView(APIView):
                 birthCountry = row['birthCountry']
                 postcode = row['postcode']
                 role = row['role']
-                isWebAccess = isWebAccess
-                isMobileAccess = isMobileAccess
-                # doj = formatted_doj
-                isExternal = isExternal
+                isWebAccess = row['isWebAccess'].upper() # changed any values to uppercase
+                if isWebAccess == 'TRUE': isWebAccess = True
+                elif isWebAccess == 'FALSE': isWebAccess = False
+                else: raise ValueError(f"Invalid value for isWebAccess: {row['isWebAccess']}")
+                isMobileAccess = row['isMobileAccess'].upper()
+                if isMobileAccess == 'TRUE': isMobileAccess = True
+                elif isMobileAccess == 'FALSE': isMobileAccess = False
+                else: raise ValueError(f"Invalid value for isMobileAccess: {row['isMobileAccess']}")
+                doj = row['doj']
+                doj = datetime.strptime(doj, '%d/%m/%Y').strftime('%Y-%m-%d')
+                isExternal = row['isExternal'].upper()
+                if isExternal == 'TRUE': isExternal = True
+                elif isExternal == 'FALSE': isExternal = False
+                else: raise ValueError(f"Invalid value for isExternal: {row['isExternal']}")
                 staffNRIC = row['staffNRIC']
 
+            # Insert Staff records to database
                 staff, created = Staff.objects.get_or_create(
                     email=email,
                     defaults={
@@ -85,7 +80,7 @@ class UploadCSVView(APIView):
                         'lastName': lastName,
                         'phone': phone,
                         'gender': gender,
-                        'dob': formatted_dob,
+                        'dob': dob,
                         'profileImage': profileImage,
                         'address': address,
                         'state': state,
@@ -95,25 +90,28 @@ class UploadCSVView(APIView):
                         'role': role,
                         'isWebAccess': isWebAccess,
                         'isMobileAccess': isMobileAccess,
-                        'doj': formatted_doj,
+                        'doj': doj,
                         'isExternal': isExternal,
                         'staffNRIC': staffNRIC,
                     }
                 )             
 
+            # Read School CSV file by row
                 academyYear = row['academyYear']
                 academyMonth = row['academyMonth']
-                # startDate = row['startDate']
+                start_date = row['startDate']
+                start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%d')
                 classroom_name = row['classroom_name']
-                isPrimary = isPrimary
+                isPrimary = row['isPrimary'].strip().upper() == 'TRUE'
                 Branches = row['Branches']
-                IsFranchiseStaff = IsFranchiseStaff
+                IsFranchiseStaff = row['IsFranchiseStaff'].strip().upper() == 'TRUE'
         
+            # Insert School records to database
                 school, created = School.objects.update_or_create(
                     academyYear=row['academyYear'], 
                     defaults={
                         'academyMonth': academyMonth,
-                        'startDate': formatted_start_date,
+                        'startDate': start_date,
                         'classroom_name': classroom_name,
                         'isPrimary': isPrimary,
                         'Branches': Branches,
