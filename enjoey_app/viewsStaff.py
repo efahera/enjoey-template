@@ -19,7 +19,18 @@ class UploadCSVView(APIView):
 
         if csv_file:
             try:            
-                self.read_csv_file(csv_file)
+                success, errors = self.read_csv_file(csv_file)
+
+                if errors:
+                    error_messages = "\n".join(errors)
+                    
+                    print(f"Errors encountered during CSV processing:\n{error_messages}")
+
+                    return HttpResponse(
+                        f"Data uploaded contains errors:\n{error_messages}", 
+                        status=400
+                    )
+
                 return HttpResponse("Successfully updated Staff and School files.")
 
             except Exception as e:
@@ -34,29 +45,31 @@ class UploadCSVView(APIView):
         file = csv_file.read().decode('utf-8').splitlines()
         reader = csv.DictReader(file)
 
+        errors = []
+
         for row in reader:
 
             try:
 
             # Read Staff CSV file 
                 # Staff
-                school_name = row['school_name']
-                branch_name = row['branch_name']
-                firstName = row['firstName']
-                lastName = row['lastName']
-                email = row['email']
-                phone = row['phone']
-                gender = row['gender']
-                dob = row['dob']
-                dob = datetime.strptime(dob, '%d/%m/%Y').strftime('%Y-%m-%d')
-                profileImage = row['profileImage']
-                address = row['address']
-                state = row['state']
-                country = row['country']
-                birthCountry = row['birthCountry']
-                postcode = row['postcode']
-                role = row['role']
-                isWebAccess = row['isWebAccess'].upper().strip() # changed any values to uppercase
+                schoolName = row['schoolName'].strip()
+                branchName = row['branchName'].strip()
+                firstName = row['firstName'].strip()
+                lastName = row['lastName'].strip()
+                email = row['email'].strip()
+                phone = self.format_phone(row['phone'])
+                gender = row['gender'].strip()
+                dob = row['dob'].strip()
+                dob = datetime.strptime(dob, '%d/%m/%Y').strftime('%Y-%m-%d').strip()
+                profileImage = row['profileImage'].strip()
+                address = row['address'].strip()
+                state = row['state'].strip()
+                country = row['country'].strip()
+                birthCountry = row['birthCountry'].strip()
+                postcode = row['postcode'].strip()
+                role = row['role'].strip()
+                isWebAccess = row['isWebAccess'].upper().strip()
                 if isWebAccess == 'TRUE': isWebAccess = True
                 elif isWebAccess == 'FALSE': isWebAccess = False
                 else: raise ValueError(f"Invalid value for isWebAccess: {row['isWebAccess']}")
@@ -64,20 +77,20 @@ class UploadCSVView(APIView):
                 if isMobileAccess == 'TRUE': isMobileAccess = True
                 elif isMobileAccess == 'FALSE': isMobileAccess = False
                 else: raise ValueError(f"Invalid value for isMobileAccess: {row['isMobileAccess']}")
-                doj = row['doj']
-                doj = datetime.strptime(doj, '%d/%m/%Y').strftime('%Y-%m-%d')
+                doj = row['doj'].strip()
+                doj = datetime.strptime(doj, '%d/%m/%Y').strftime('%Y-%m-%d').strip()
                 isExternal = row['isExternal'].upper().strip()
                 if isExternal == 'TRUE': isExternal = True
                 elif isExternal == 'FALSE': isExternal = False
                 else: raise ValueError(f"Invalid value for isExternal: {row['isExternal']}")
-                staffNRIC = row['staffNRIC']
+                staffNRIC = row['staffNRIC'].strip()
 
                 # School
-                academyYear = row['academyYear']
-                academyMonth = row['academyMonth']
-                start_date = row['startDate']
-                start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%d')
-                classroom_name = row['classroom_name']
+                academyYear = row['academyYear'].strip()
+                academyMonth = row['academyMonth'].strip()
+                startDate = row['startDate']
+                startDate = datetime.strptime(startDate, '%d/%m/%Y').strftime('%Y-%m-%d')
+                classroomName = row['classroomName'].strip()
                 isPrimary = row['isPrimary'].upper().strip()
                 if isPrimary == 'TRUE': isPrimary = True
                 elif isPrimary == 'FALSE': isPrimary = False
@@ -93,8 +106,8 @@ class UploadCSVView(APIView):
                     email=email,
                     defaults={
                         # Staff
-                        'school_name': school_name,
-                        'branch_name': branch_name,
+                        'schoolName': schoolName,
+                        'branchName': branchName,
                         'firstName': firstName,
                         'lastName': lastName,
                         'phone': phone,
@@ -116,8 +129,8 @@ class UploadCSVView(APIView):
                         # School
                         'academyYear': academyYear,
                         'academyMonth': academyMonth,
-                        'startDate': start_date,
-                        'classroom_name': classroom_name,
+                        'startDate': startDate,
+                        'classroomName': classroomName,
                         'isPrimary': isPrimary,
                         'Branches': Branches,
                         'IsFranchiseStaff': IsFranchiseStaff,
@@ -125,8 +138,19 @@ class UploadCSVView(APIView):
                 )             
 
             except ValueError as e:
-                print(f"Error parsing date or other field: {e}")
-                continue
+                error_message = f"Row {reader.line_num}: Error parsing date or other field: {e}"
+                errors.append(error_message)
+                print(error_message)
+            except KeyError as e:
+                error_message = f"Row {reader.line_num}: Missing field {e}"
+                errors.append(error_message)
+                print(error_message)
+            except Exception as e:
+                error_message = f"Row {reader.line_num}: Unexpected error: {e}"
+                errors.append(error_message)
+                print(error_message)
+
+        return (True if not errors else False), errors
 
     # Format phone number
     def format_phone(self, phone): 
